@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Bloquea commits que incluyan archivos de secretos o texto con forma de clave.
+# Se activa con: git config core.hooksPath scripts/git-hooks  (lo hace setup.sh)
+set -euo pipefail
+
+fail=0
+
+# 1) Archivos que nunca deben versionarse.
+while IFS= read -r file; do
+  base="$(basename "$file")"
+  case "$base" in
+    .env.example|.env.sample|.env.template) ;;
+    .env|.env.*|*.pem|*.key|*.p12|*.pfx|id_rsa*|id_ed25519*|auth.json|credentials*)
+      echo "❌ Archivo de secretos en el commit: $file"; fail=1 ;;
+  esac
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+# 2) Contenido con forma de clave en las líneas añadidas.
+patterns='(gsk_[A-Za-z0-9]{16,}|sk-[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AIza[0-9A-Za-z_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|(_API_KEY|_TOKEN|_SECRET)=["'"'"']?[A-Za-z0-9_.-]{8,})'
+# Solo se nombra el archivo: el hook nunca imprime el secreto.
+while IFS= read -r file; do
+  [ "$file" = "scripts/git-hooks/pre-commit" ] && continue
+  if git diff --cached -U0 -- "$file" | grep -E '^\+' | grep -Eq "$patterns"; then
+    echo "❌ Algo con forma de clave de API o clave privada en: $file"; fail=1
+  fi
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ "$fail" -ne 0 ]; then
+  echo "Commit cancelado. Quita los secretos (van en .env, que está en .gitignore)."
+  exit 1
+fi

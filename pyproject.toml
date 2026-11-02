@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "allagents"
+version = "0.1.0"
+description = "Servidor MCP local (solo stdio) para que Claude Code delegue subtareas a otras IAs."
+readme = "README.md"
+requires-python = ">=3.11"
+# Versiones exactas: el árbol completo de dependencias está fijado en requirements.lock.
+dependencies = ["mcp==2.3.0"]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0"]
+
+[project.scripts]
+allagents = "allagents.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

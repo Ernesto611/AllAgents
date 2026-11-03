@@ -41,6 +41,36 @@ Después:
    .venv/bin/allagents check
    ```
 3. Abre una sesión **nueva** de Claude Code: las herramientas `ask_*` aparecen solas.
+4. **Recomendado:** haz que Claude delegue por iniciativa propia (siguiente sección).
+
+---
+
+## Que Claude delegue por iniciativa propia
+
+El servidor ya envía a Claude la lista de prioridades y las reglas al empezar cada
+sesión, sin que tengas que hacer nada. Pero si no se le recuerda, Claude tiende a
+hacer el trabajo él mismo. Para que delegue de forma proactiva, pega este bloque en
+`~/.claude/CLAUDE.md` (si no existe, créalo). Claude Code lo carga en todas tus
+sesiones, en cualquier carpeta:
+
+```markdown
+## Delegación con AllAgents
+Tienes el servidor MCP `allagents` (herramientas `ask_*`). Úsalo de forma proactiva para ahorrar tokens:
+- Antes de hacer tú una tarea delegable (resumir archivos o logs, extraer datos, generar
+  boilerplate, tests o docstrings, revisar código, segundas opiniones), delégala siguiendo
+  la prioridad de sus instrucciones: primero `ask_ollama`.
+- Pasa los archivos por ruta absoluta en `files`; no los leas tú antes.
+- Datos sensibles (clientes, credenciales, layouts bancarios): solo `ask_ollama`.
+- Revisa lo que devuelvan antes de aplicarlo y dime en una línea qué agente usaste.
+- Si no ves las herramientas `ask_*`, avísame en lugar de seguir sin ellas.
+```
+
+Es corto a propósito: se carga en cada sesión. También puedes pedirlo en el momento:
+
+- *"Resume este log con allagents: /home/…/app.log"*
+- *"Pídele a Mistral que revise /home/…/procedimiento.sql"*
+- *"Usa solo Ollama, son datos de clientes"*
+- *"Antes de responder, pide una segunda opinión a Codex"*
 
 ---
 
